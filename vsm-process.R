@@ -82,7 +82,7 @@ find.fit <- function (data, type){
   
   fits = data.frame()
   
-  while (tolerance > 0.85) {
+  while (tolerance > 0.75) {
     i = k = 1
     j = nrow(data)
     
@@ -90,6 +90,7 @@ find.fit <- function (data, type){
       if (nrow(fits) < k){
         if (type == "middle") {
           fit = lm(data$moment[i:j] ~ data$field[i:j])
+          summary(fit)$coefficients[2]
           fits[k, 1] = type
           fits[k, 2] = data$field[i]
           fits[k, 3] = data$field[j]
@@ -189,7 +190,7 @@ log.normal = function(x, size, sigma) {
 
 # Import data -------------------------------------------------------------
 
-setwd("/Users/ericteeman/Google Drive/Research/Data/VSM/Notebook 3/")
+setwd("/Users/ericteeman/Google Drive/Research/Data/VSM/")
 setwd(rchoose.dir(caption = "Select Directory")) # Asks user to choose directory containing data files
 
 dat <- list.files(pattern = "*\\d.txt", full.names = T, recursive = F) %>% map_df(~ read.dat(.))
@@ -221,7 +222,7 @@ if (file.exists("conc.txt")) {
 # Data correction to account for instrument error
 dat = dat %>%
   group_by(range) %>%
-  mutate(field = shift.data(field)) %>% #center moment around zero
+  mutate(moment = shift.data(moment)) %>% #center moment around zero
   ungroup() %>%
   mutate(range = range * (10 ^ -1)) %>% #convert gauss to mT
   mutate(field = field * (10 ^ -1)) %>% #convert gauss to mT
@@ -266,13 +267,15 @@ colnames(info) = c("Conc [mgFe/mL]", "Ms [kA/m]", "Size [nm]", "Sigma")
 
 # Plots -------------------------------------------------------------------
 
-data.set <- dat %>% dplyr::filter(range < max(range) & range > min(range))
+# data.set <- dat %>% dplyr::filter(range < max(range) & range > min(range))
+data.set <- dat %>% dplyr::filter(range == max(range))
+
 
 xlab = "Field [mT]"
 ylab = mh.label
 
 p1 = ggplot(data.set) +
-  geom_point(aes(x = field, y = magnetization), size = 3) +
+  geom_point(aes(x = field, y = moment), size = 2) +
   # stat_function(fun = function(x) fits$slope[1]*x + fits$intercept[1], 
   #               geom="line", 
   #               xlim = c(fits$lower.bound[1], fits$upper.bound[1]),
@@ -299,7 +302,7 @@ xlab = "1/field"
 data.set = dat %>% dplyr::filter(range == max(range))
 
 p2 = ggplot(data.set) +
-  geom_point(aes(x = reciprocal, y = moment), size = 3) +
+  geom_point(aes(x = reciprocal, y = moment), size = 2) +
   stat_function(fun = function(x) fits$slope[2]*x + fits$intercept[2], 
                 geom="line", 
                 xlim = c(fits$lower.bound[2], fits$upper.bound[2]), 
@@ -365,6 +368,7 @@ sc = 1    # Set scaling for saved images
 
 if(export.data == "yes"){
   write.csv(info, "info.csv", row.names = FALSE)
+  write.csv(dat, "dat.csv", row.names = FALSE)
 }
 
 if(export.plots == "yes"){
