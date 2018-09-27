@@ -5,6 +5,7 @@ export.data = "yes"
 export.plots = "yes"
 export.grid = "no"
 
+
 # Import packages ---------------------------------------------------------
 
 my.packages <- c("rChoiceDialogs", "purrr", "dplyr", "ggplot2", "ggpubr", "scales", "sfsmisc", "signal")
@@ -57,36 +58,37 @@ read.conc <- function(flnm) { read.csv(flnm, header = FALSE, skip = 0) }
 
 find.fit <- function (data, type){
   tolerance <- 0.9999
-  tolerance.drop <- 0.0005
+  tolerance.drop <- 0.0001
   
   if (type == "middle"){
-    fraction <- 0.2
+    frac <- 0.7
     data <- data %>% 
-      dplyr::filter(between(moment, fraction * min(moment), fraction * max(moment))) %>% 
+      dplyr::filter(between(moment, frac * min(moment), frac * max(moment))) %>% 
       arrange(field)
+    plot(data$field,data$moment)
   }
   
   if (type == "negative.reciprocal") {
-    fraction <- 0.8
+    frac <- 0.8
     data <- data %>% 
-      dplyr::filter(between(moment, min(moment), fraction * min(moment))) %>% 
+      dplyr::filter(between(moment, min(moment), frac * min(moment))) %>% 
       arrange(field)
   }
   
   if (type == "positive.reciprocal") {
-    fraction <- 0.8
+    frac <- 0.8
     data <- data %>% 
-      dplyr::filter(between(moment, fraction * max(moment), max(moment))) %>% 
+      dplyr::filter(between(moment, frac * max(moment), max(moment))) %>% 
       arrange(field)
   }
   
   fits = data.frame()
   
-  while (tolerance > 0.75) {
+  while (tolerance > 0.5) {
     i = k = 1
     j = nrow(data)
     
-    while (i < j & j - i > 20) {
+    while (i < j & j - i > 8) {
       if (nrow(fits) < k){
         if (type == "middle") {
           fit = lm(data$moment[i:j] ~ data$field[i:j])
@@ -135,7 +137,7 @@ find.fit <- function (data, type){
       }
       k = k + 1
     }
-    
+
     tolerance = tolerance - tolerance.drop
     # print(tolerance)
   }
@@ -154,11 +156,7 @@ calc.d <- function(kB, temperature, Xi, Ho, moment, magnetization) {
 
 # Function to calculate the nanoparticle size distribution based on Chantrell fitting
 calc.sigma <- function(Xi, Ho, moment) {
-  print(Xi)
-  print(Ho)
-  print(moment)
   sigma = ((log(3 * Xi / (moment / Ho))) ^ (1 / 2)) / 3
-  print(sigma)
   return(sigma)
 }
 
@@ -241,6 +239,8 @@ fits = find.fit(dat, "middle") %>%
   mutate(Ms = case_when(conc == 0 ~ 446,
                         conc != 0 ~ abs(calc.Ms(moment, conc, vol, density))))
 
+# View(fits)
+
 info = data.frame(
   conc,
   round(mean(c(fits$Ms[2], fits$Ms[3])), 1),
@@ -248,21 +248,8 @@ info = data.frame(
          mean(c(fits$Ho[2],fits$Ho[3])),
          mean(c(fits$moment[2], fits$moment[3])),
          mean(c(fits$Ms[2], fits$Ms[3]))), 1),
-  round(calc.sigma(fits$Xi[1], fits$Ho[3], fits$moment[3]), 2))
+  round(calc.sigma(fits$Xi[1], mean(fits$Ho[2],fits$Ho[3]), mean(fits$moment[2],fits$moment[3])), 1))
 colnames(info) = c("Conc [mgFe/mL]", "Ms [kA/m]", "Size [nm]", "Sigma")
-
-# # Find fit coefficient of field to determine appropriate shift (phi)
-# model = nls(
-#   dat$field.data ~ -field.amplitude * cos(omega * (dat$time + phi)),
-#   data = dat,
-#   control = list(
-#     maxiter = 100000,
-#     minFactor = 1e-3,
-#     printEval = TRUE
-#   ),
-#   start = list(phi = 1),
-#   algorithm = "port"
-# )
 
 
 # Plots -------------------------------------------------------------------
@@ -276,8 +263,8 @@ ylab = mh.label
 
 p1 = ggplot(data.set) +
   geom_point(aes(x = field, y = moment), size = 2) +
-  # stat_function(fun = function(x) fits$slope[1]*x + fits$intercept[1], 
-  #               geom="line", 
+  # stat_function(fun = function(x) fits$slope[1]*x + fits$intercept[1],
+  #               geom="line",
   #               xlim = c(fits$lower.bound[1], fits$upper.bound[1]),
   #               color = "red",
   #               size = 1) +
@@ -290,7 +277,7 @@ p1 = ggplot(data.set) +
     axis.title = element_text(size = 20),
     axis.ticks.length = unit(-8, "pt"),
     panel.grid = element_blank(),
-    panel.border = element_rect(size = 0.75, color = "black"),
+    panel.border = element_rect(size = 1, color = "black"),
     legend.position = c(0.02, 0.98),
     legend.justification = c("left", "top"),
     legend.text = element_text(size = 10)
@@ -322,7 +309,7 @@ p2 = ggplot(data.set) +
     axis.title = element_text(size = 20),
     axis.ticks.length = unit(-8, "pt"),
     panel.grid = element_blank(),
-    panel.border = element_rect(size = 0.75, color = "black"),
+    panel.border = element_rect(size = 1, color = "black"),
     legend.position = c(0.02, 0.98),
     legend.justification = c("left", "top"),
     legend.text = element_text(size = 10)
@@ -346,7 +333,7 @@ p3 = ggplot(data.set) +
     axis.title = element_text(size = 20),
     axis.ticks.length = unit(-8, "pt"),
     panel.grid = element_blank(),
-    panel.border = element_rect(size = 0.75, color = "black"),
+    panel.border = element_rect(size = 1, color = "black"),
     legend.position = c(0.02, 0.98),
     legend.justification = c("left", "top"),
     legend.text = element_text(size = 10)
@@ -383,5 +370,6 @@ if(export.grid == "yes"){
 
 if (display.mh == "yes"){
   p1
-  info
 }
+
+info
