@@ -1,8 +1,8 @@
 # Options -----------------------------------------------------------------
 
-display.mh = "yes"
+display.mh = "no"
 export.data = "yes"
-export.plots = "yes"
+export.plots = "no"
 export.grid = "no"
 
 
@@ -13,21 +13,6 @@ lapply(my.packages, require, character.only = TRUE)
 
 
 # Functions ---------------------------------------------------------------
-
-
-scientific_10_full <- function(x) {
-  ifelse (x %% 1 == 0,
-         parse(text = gsub("e+00", "", scientific_format()(x))),
-         ifelse (x > 1 & x < 0.11, as.numeric(as.character(x)), 
-                parse(text = gsub("e", " %*% 10^", scientific_format()(x)))))
-}
-
-
-scientific_10 <- function(x) {
-  ifelse (x %% 1 == 0, parse(text = gsub("e+00", "", scientific_format()(x))),
-         ifelse (x > 1 & x < 0.11, as.numeric(as.character(x)), parse(text = gsub(".*e", "10^", scientific_format()(x)))))
-}
-
 
 shift.data <- function(data) {
   moment.max = max(data)
@@ -263,11 +248,6 @@ ylab = mh.label
 
 p1 = ggplot(data.set) +
   geom_point(aes(x = field, y = moment), size = 2) +
-  # stat_function(fun = function(x) fits$slope[1]*x + fits$intercept[1],
-  #               geom="line",
-  #               xlim = c(fits$lower.bound[1], fits$upper.bound[1]),
-  #               color = "red",
-  #               size = 1) +
   scale_x_continuous(breaks = waiver()) +
   scale_y_continuous(breaks = waiver()) +
   theme_bw() +
