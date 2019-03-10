@@ -2,8 +2,8 @@
 
 display.mh = "no"
 export.data = "yes"
-export.plots = "no"
-export.grid = "no"
+export.plots = "yes"
+export.grid = "yes"
 
 
 # Import packages ---------------------------------------------------------
@@ -131,10 +131,7 @@ find.fit <- function (data, type){
 
 # Function to calculate the nanoparticle size based on Chantrell fitting
 calc.d <- function(kB, temperature, Xi, Ho, moment, magnetization) {
-  diameter = ((((18 * (
-    kB
-  ) * temperature) / (pi * magnetization)) * sqrt(Xi / (3 * moment * Ho))) ^ (1 /
-                                                                                3)) * (10 ^ 9)
+  diameter = ((((18 * ( kB ) * temperature) / (pi * magnetization)) * sqrt(Xi / (3 * moment * Ho))) ^ (1 / 3)) * (10 ^ 9)
   return(diameter)
 }
 
@@ -195,11 +192,11 @@ if (file.exists("conc.txt")) {
   conc.new = conc / 1000 #gFe/mL
   vol.new = vol / 1000 #mL
   mass = conc.new * vol.new #gFe
-  mh.label = expression(paste("Magnetization [kA m" ^ "-1", "]"))
+  mh.label = expression(paste("M [kA m" ^ "-1", "]"))
 } else {
   conc <- 0 #mgFe/mL
   mass <- 1 #filler value to prevent conversion without known conc
-  mh.label = expression(paste("Moment [Am" ^ "2", "]"))
+  mh.label = expression(paste("m [Am" ^ "2", "]"))
 }
 
 # Data correction to account for instrument error
@@ -239,85 +236,72 @@ colnames(info) = c("Conc [mgFe/mL]", "Ms [kA/m]", "Size [nm]", "Sigma")
 
 # Plots -------------------------------------------------------------------
 
-# data.set <- dat %>% dplyr::filter(range < max(range) & range > min(range))
-data.set <- dat %>% dplyr::filter(range == max(range))
+theme_new <- function (base_size=24, base_line_size = 1) {
+  theme_bw(base_size=base_size,
+           base_family="") %+replace%
+    theme(
+      axis.text.x = element_text(size = base_size, margin = margin(t = 0.5*base_size)),
+      axis.text.y = element_text(size = base_size, margin = margin(r = 0.5*base_size)),
+      axis.title = element_text(size = base_size+2),
+      axis.ticks.length = unit(-8, "pt"),
+      panel.border = element_rect(size = base_line_size, fill=NA),
+      panel.grid = element_blank(),
+      legend.background = element_rect(fill="transparent", colour=NA),
+      legend.position = c(0.95, 0.05),
+      legend.justification = c("right", "bottom"),
+      legend.direction = "vertical",
+      legend.title = element_text(size = base_size-4),
+      legend.title.align = 0.5,
+      legend.text = element_text(size = base_size-4),
+      legend.text.align = 0
+    )
+}
 
-
-xlab = "Field [mT]"
+xlab = expression(paste(mu[0],"H [mT]"))
 ylab = mh.label
+
+data.set <- dat %>% dplyr::filter(range == min(range))
 
 p1 = ggplot(data.set) +
   geom_point(aes(x = field, y = moment), size = 2) +
-  scale_x_continuous(breaks = waiver()) +
-  scale_y_continuous(breaks = waiver()) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(size = 15, margin = margin(t = 12)),
-    axis.text.y = element_text(size = 15, margin = margin(r = 12)),
-    axis.title = element_text(size = 20),
-    axis.ticks.length = unit(-8, "pt"),
-    panel.grid = element_blank(),
-    panel.border = element_rect(size = 1, color = "black"),
-    legend.position = c(0.02, 0.98),
-    legend.justification = c("left", "top"),
-    legend.text = element_text(size = 10)
-  ) +
+  scale_x_continuous(breaks = pretty_breaks(3)) +
+  scale_y_continuous(breaks = pretty_breaks(3)) +
+  theme_new() +
   guides(col = guide_legend(ncol = 1)) +
   labs(x = xlab, y = ylab)
 
-xlab = "1/field"
-data.set = dat %>% dplyr::filter(range == max(range))
+data.set <- dat %>% dplyr::filter(range == median(range))
 
 p2 = ggplot(data.set) +
-  geom_point(aes(x = reciprocal, y = moment), size = 2) +
-  stat_function(fun = function(x) fits$slope[2]*x + fits$intercept[2], 
-                geom="line", 
-                xlim = c(fits$lower.bound[2], fits$upper.bound[2]), 
-                color = "red",
-                size = 1) +
-  stat_function(fun = function(x) fits$slope[3]*x + fits$intercept[3], 
-                geom="line", 
-                xlim = c(fits$lower.bound[3], fits$upper.bound[3]), 
-                color = "red",
-                size = 1) +
-  scale_x_continuous(breaks = waiver()) +
-  scale_y_continuous(breaks = waiver()) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(size = 15, margin = margin(t = 12)),
-    axis.text.y = element_text(size = 15, margin = margin(r = 12)),
-    axis.title = element_text(size = 20),
-    axis.ticks.length = unit(-8, "pt"),
-    panel.grid = element_blank(),
-    panel.border = element_rect(size = 1, color = "black"),
-    legend.position = c(0.02, 0.98),
-    legend.justification = c("left", "top"),
-    legend.text = element_text(size = 10)
-  ) +
+  geom_point(aes(x = field, y = moment), size = 2) +
+  scale_x_continuous(breaks = pretty_breaks(3)) +
+  scale_y_continuous(breaks = pretty_breaks(3)) +
+  theme_new() +
   guides(col = guide_legend(ncol = 1)) +
   labs(x = xlab, y = ylab)
+
+data.set <- dat %>% dplyr::filter(range == max(range))
+
+p3 = ggplot(data.set) +
+  geom_point(aes(x = field, y = moment), size = 2) +
+  scale_x_continuous(breaks = pretty_breaks(3)) +
+  scale_y_continuous(breaks = pretty_breaks(3)) +
+  theme_new() +
+  guides(col = guide_legend(ncol = 1)) +
+  labs(x = xlab, y = ylab)
+
 
 data.set = data.frame(x = 0)
 xmin = 0.1*info$`Size [nm]`
 xmax = 1.9*info$`Size [nm]`
-xlab = "Size [nm]"
-ylab = "Frequency"
+xlab = expression(paste(d[0]," [nm]"))
+ylab = "Density [%]"
 
-p3 = ggplot(data.set) +
+p4 = ggplot(data.set) +
   stat_function(fun = log.normal, args = list(info$`Size [nm]`, info$Sigma), geom="line", size = 1) +
-  scale_x_continuous(breaks = waiver(), limits = c(xmin, xmax)) +
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(size = 15, margin = margin(t = 12)),
-    axis.text.y = element_text(size = 15, margin = margin(r = 12)),
-    axis.title = element_text(size = 20),
-    axis.ticks.length = unit(-8, "pt"),
-    panel.grid = element_blank(),
-    panel.border = element_rect(size = 1, color = "black"),
-    legend.position = c(0.02, 0.98),
-    legend.justification = c("left", "top"),
-    legend.text = element_text(size = 10)
-  ) +
+  scale_x_continuous(breaks = pretty_breaks(3), limits = c(xmin, xmax)) +
+  scale_y_continuous(breaks = pretty_breaks(3)) +
+  theme_new() +
   guides(col = guide_legend(ncol = 1)) +
   labs(x = xlab, y = ylab)
 
@@ -339,13 +323,15 @@ if(export.data == "yes"){
 }
 
 if(export.plots == "yes"){
-  ggsave("mh.png", p1, width = 6 * sc, height = 4.5 * sc, dpi = 300)
-  ggsave("histogram.png", p3, width = 6 * sc, height = 4.5 * sc, dpi = 300)
+  ggsave("mh.png", p2, width = 5 * sc, height = 4.5 * sc, dpi = "retina")
+  ggsave("histogram.png", p4, width = 5 * sc, height = 4.5 * sc, dpi = "retina")
 }
 
 if(export.grid == "yes"){
-  grid <- ggarrange(p1, p2, p3, p4, p5, p6, ncol = 2, nrow = 3)
-  ggsave("all-plot.png", grid, width = 8.5 * sc, heigh = 11 * sc, dpi = 300)
+  grid <- ggarrange(p1, p2, p3, p4, hjust = -0.25,
+                        labels = c("(a)", "(b)","(c)","(d)"), font.label = list(size = 24),
+                        ncol = 2, nrow = 2)
+  ggsave("grid.png", grid, width = 8 * sc, heigh = 8 * sc, dpi = "retina")
 }
 
 if (display.mh == "yes"){
