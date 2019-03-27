@@ -2,8 +2,8 @@
 
 display.mh = "no"
 export.data = "yes"
-export.plots = "yes"
-export.grid = "yes"
+export.plots = "no"
+export.grid = "no"
 
 
 # Import packages ---------------------------------------------------------
@@ -46,11 +46,11 @@ find.fit <- function (data, type){
   tolerance.drop <- 0.0001
   
   if (type == "middle"){
-    frac <- 0.7
+    frac <- 0.2
     data <- data %>% 
       dplyr::filter(between(moment, frac * min(moment), frac * max(moment))) %>% 
       arrange(field)
-    plot(data$field,data$moment)
+    # plot(data$field,data$moment)
   }
   
   if (type == "negative.reciprocal") {
@@ -69,11 +69,11 @@ find.fit <- function (data, type){
   
   fits = data.frame()
   
-  while (tolerance > 0.5) {
+  while (tolerance > 0.75) {
     i = k = 1
     j = nrow(data)
     
-    while (i < j & j - i > 8) {
+    while (i < j & j - i > 20) {
       if (nrow(fits) < k){
         if (type == "middle") {
           fit = lm(data$moment[i:j] ~ data$field[i:j])
@@ -225,12 +225,12 @@ fits = find.fit(dat, "middle") %>%
 
 info = data.frame(
   conc,
-  round(mean(c(fits$Ms[2], fits$Ms[3])), 1),
+  round(mean(c(fits$Ms[2], fits$Ms[3])), 2),
   round(calc.d(kB, temperature, fits$Xi[1],
          mean(c(fits$Ho[2],fits$Ho[3])),
          mean(c(fits$moment[2], fits$moment[3])),
-         mean(c(fits$Ms[2], fits$Ms[3]))), 1),
-  round(calc.sigma(fits$Xi[1], mean(fits$Ho[2],fits$Ho[3]), mean(fits$moment[2],fits$moment[3])), 1))
+         mean(c(fits$Ms[2], fits$Ms[3]))), 2),
+  round(calc.sigma(fits$Xi[1], mean(fits$Ho[2],fits$Ho[3]), mean(fits$moment[2],fits$moment[3])), 2))
 colnames(info) = c("Conc [mgFe/mL]", "Ms [kA/m]", "Size [nm]", "Sigma")
 
 
@@ -263,7 +263,7 @@ ylab = mh.label
 data.set <- dat %>% dplyr::filter(range == min(range))
 
 p1 = ggplot(data.set) +
-  geom_point(aes(x = field, y = moment), size = 2) +
+  geom_point(aes(x = field, y = magnetization), size = 2) +
   scale_x_continuous(breaks = pretty_breaks(3)) +
   scale_y_continuous(breaks = pretty_breaks(3)) +
   theme_new() +
@@ -273,7 +273,7 @@ p1 = ggplot(data.set) +
 data.set <- dat %>% dplyr::filter(range == median(range))
 
 p2 = ggplot(data.set) +
-  geom_point(aes(x = field, y = moment), size = 2) +
+  geom_point(aes(x = field, y = magnetization), size = 2) +
   scale_x_continuous(breaks = pretty_breaks(3)) +
   scale_y_continuous(breaks = pretty_breaks(3)) +
   theme_new() +
@@ -283,7 +283,7 @@ p2 = ggplot(data.set) +
 data.set <- dat %>% dplyr::filter(range == max(range))
 
 p3 = ggplot(data.set) +
-  geom_point(aes(x = field, y = moment), size = 2) +
+  geom_point(aes(x = field, y = magnetization), size = 2) +
   scale_x_continuous(breaks = pretty_breaks(3)) +
   scale_y_continuous(breaks = pretty_breaks(3)) +
   theme_new() +
