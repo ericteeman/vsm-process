@@ -3,7 +3,7 @@
 display.mh = "no"
 export.data = "yes"
 export.plots = "no"
-export.grid = "no"
+export.grid = "yes"
 
 
 # Import packages ---------------------------------------------------------
@@ -236,24 +236,26 @@ colnames(info) = c("Conc [mgFe/mL]", "Ms [kA/m]", "Size [nm]", "Sigma")
 
 # Plots -------------------------------------------------------------------
 
-theme_new <- function (base_size=24, base_line_size = 1) {
+theme_new <- function (base_size=24, base_line_size=1) {
   theme_bw(base_size=base_size,
            base_family="") %+replace%
     theme(
-      axis.text.x = element_text(size = base_size, margin = margin(t = 0.5*base_size)),
-      axis.text.y = element_text(size = base_size, margin = margin(r = 0.5*base_size)),
-      axis.title = element_text(size = base_size+2),
-      axis.ticks.length = unit(-8, "pt"),
-      panel.border = element_rect(size = base_line_size, fill=NA),
-      panel.grid = element_blank(),
-      legend.background = element_rect(fill="transparent", colour=NA),
-      legend.position = c(0.95, 0.05),
-      legend.justification = c("right", "bottom"),
-      legend.direction = "vertical",
-      legend.title = element_text(size = base_size-4),
-      legend.title.align = 0.5,
-      legend.text = element_text(size = base_size-4),
-      legend.text.align = 0
+      axis.text.x = element_text(size=base_size, margin = margin(t=0.75*base_size,b=0.25*base_size), color="black"),
+      axis.text.y = element_text(size=base_size, margin=margin(r=0.75*base_size,l=0.25*base_size), color="black"),
+      axis.title=element_text(size=base_size, color="black"),
+      axis.line=element_line(size=base_line_size, lineend="square", color="black"),
+      axis.ticks=element_line(size=base_line_size, lineend="square", color="black"),
+      axis.ticks.length=unit(-8, "pt"),
+      panel.border=element_blank(),
+      panel.grid=element_blank(),
+      legend.background=element_rect(fill="transparent", colour=NA),
+      legend.position=c(1, 1),
+      legend.justification=c("right", "top"),
+      legend.direction="vertical",
+      legend.title=element_text(size=0.75*base_size),
+      legend.title.align=0.5,
+      legend.text=element_text(size=0.75*base_size),
+      legend.text.align=0
     )
 }
 
@@ -331,7 +333,7 @@ if(export.grid == "yes"){
   grid <- ggarrange(p1, p2, p3, p4, hjust = -0.25,
                         labels = c("(a)", "(b)","(c)","(d)"), font.label = list(size = 24),
                         ncol = 2, nrow = 2)
-  ggsave("grid.png", grid, width = 8 * sc, heigh = 8 * sc, dpi = "retina")
+  ggsave("grid.png", grid, width = 9 * sc, height = 8 * sc, dpi = "retina")
 }
 
 if (display.mh == "yes"){
