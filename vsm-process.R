@@ -248,6 +248,7 @@ theme_new <- function (base_size=24, base_line_size=1) {
       axis.ticks.length=unit(-8, "pt"),
       panel.border=element_blank(),
       panel.grid=element_blank(),
+      aspect.ratio = 1,
       legend.background=element_rect(fill="transparent", colour=NA),
       legend.position=c(1, 1),
       legend.justification=c("right", "top"),
@@ -264,38 +265,44 @@ ylab = mh.label
 
 data.set <- dat %>% dplyr::filter(range == min(range))
 
-p1 = ggplot(data.set) +
-  geom_point(aes(x = field, y = magnetization), size = 2) +
+p1 = ggplot(data.set, aes(x = field, y = magnetization)) +
+  geom_point(size = 3, shape = 1, stroke = 1) +
+  geom_path(size = 1) +
   scale_x_continuous(breaks = pretty_breaks(3)) +
-  scale_y_continuous(breaks = pretty_breaks(3)) +
+  scale_y_continuous(breaks = c(min(pretty(min(data.set$magnetization))), 0, max(pretty(max(data.set$magnetization)))), 
+                     limits = c(min(pretty(min(data.set$magnetization))), max(pretty(max(data.set$magnetization))))) +
   theme_new() +
   guides(col = guide_legend(ncol = 1)) +
   labs(x = xlab, y = ylab)
 
 data.set <- dat %>% dplyr::filter(range == median(range))
 
-p2 = ggplot(data.set) +
-  geom_point(aes(x = field, y = magnetization), size = 2) +
+p2 = ggplot(data.set, aes(x = field, y = magnetization)) +
+  geom_point(size = 3, shape = 1, stroke = 1) +
+  geom_path(size = 1) +
   scale_x_continuous(breaks = pretty_breaks(3)) +
-  scale_y_continuous(breaks = pretty_breaks(3)) +
+  scale_y_continuous(breaks = c(min(pretty(min(data.set$magnetization))), 0, max(pretty(max(data.set$magnetization)))), 
+                     limits = c(min(pretty(min(data.set$magnetization))), max(pretty(max(data.set$magnetization))))) +
   theme_new() +
   guides(col = guide_legend(ncol = 1)) +
   labs(x = xlab, y = ylab)
 
 data.set <- dat %>% dplyr::filter(range == max(range))
 
-p3 = ggplot(data.set) +
-  geom_point(aes(x = field, y = magnetization), size = 2) +
+p3 = ggplot(data.set, aes(x = field, y = magnetization)) +
+  geom_point(size = 3, shape = 1, stroke = 1) +
+  geom_path(size = 1) +
   scale_x_continuous(breaks = pretty_breaks(3)) +
-  scale_y_continuous(breaks = pretty_breaks(3)) +
+  scale_y_continuous(breaks = c(min(pretty(min(data.set$magnetization))), 0, max(pretty(max(data.set$magnetization)))), 
+                     limits = c(min(pretty(min(data.set$magnetization))), max(pretty(max(data.set$magnetization))))) +
   theme_new() +
   guides(col = guide_legend(ncol = 1)) +
   labs(x = xlab, y = ylab)
 
 
 data.set = data.frame(x = 0)
-xmin = 0.1*info$`Size [nm]`
-xmax = 1.9*info$`Size [nm]`
+xmin = 0.5*info$`Size [nm]`
+xmax = 1.5*info$`Size [nm]`
 xlab = expression(paste(d[0]," [nm]"))
 ylab = "Density [%]"
 
@@ -325,15 +332,15 @@ if(export.data == "yes"){
 }
 
 if(export.plots == "yes"){
-  ggsave("mh.png", p2, width = 5 * sc, height = 4.5 * sc, dpi = "retina")
-  ggsave("histogram.png", p4, width = 5 * sc, height = 4.5 * sc, dpi = "retina")
+  ggsave("mh.png", p2, width = 4.5 * sc, height = 4.5 * sc, dpi = "retina")
+  ggsave("histogram.png", p4, width = 4.5 * sc, height = 4.5 * sc, dpi = "retina")
 }
 
 if(export.grid == "yes"){
-  grid <- ggarrange(p1, p2, p3, p4, hjust = -0.25,
+  grid <- ggarrange(p1, p2, p3, p4, hjust = -0.25, heights = c(1,1), widths = c(1,1),
                         labels = c("(a)", "(b)","(c)","(d)"), font.label = list(size = 24),
                         ncol = 2, nrow = 2)
-  ggsave("grid.png", grid, width = 9 * sc, height = 8 * sc, dpi = "retina")
+  ggsave("grid.png", grid, width = 9 * sc, height = 9 * sc, dpi = "retina")
 }
 
 if (display.mh == "yes"){
