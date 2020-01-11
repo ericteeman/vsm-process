@@ -2,7 +2,7 @@
 
 display.mh = "no"
 export.data = "yes"
-export.plots = "no"
+export.plots = "yes"
 export.grid = "yes"
 
 
@@ -73,7 +73,7 @@ find.fit <- function (data, type){
     i = k = 1
     j = nrow(data)
     
-    while (i < j & j - i > 20) {
+    while (i < j & j - i > 8) {
       if (nrow(fits) < k){
         if (type == "middle") {
           fit = lm(data$moment[i:j] ~ data$field[i:j])
@@ -241,7 +241,7 @@ theme_new <- function (base_size=24, base_line_size=1) {
            base_family="") %+replace%
     theme(
       axis.text.x = element_text(size=base_size, margin = margin(t=0.75*base_size,b=0.25*base_size), color="black"),
-      axis.text.y = element_text(size=base_size, margin=margin(r=0.75*base_size,l=0.25*base_size), color="black"),
+      axis.text.y = element_text(size=base_size, margin = margin(r=0.75*base_size,l=0.25*base_size), color="black"),
       axis.title=element_text(size=base_size, color="black"),
       axis.line=element_line(size=base_line_size, lineend="square", color="black"),
       axis.ticks=element_line(size=base_line_size, lineend="square", color="black"),
@@ -262,6 +262,7 @@ theme_new <- function (base_size=24, base_line_size=1) {
 
 xlab = expression(paste(mu[0],"H [mT]"))
 ylab = mh.label
+# ylab = "Norm. [a.u.]"
 
 data.set <- dat %>% dplyr::filter(range == min(range))
 
